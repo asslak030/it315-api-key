@@ -66,8 +66,8 @@ export default function KeysPage() {
         <div className="pt-6 border-t border-gray-800 flex items-center gap-3">
           <UserButton afterSignOutUrl="/" />
           <span className="text-sm font-medium truncate">
-            {user?.fullName ||
-              user?.username ||
+            {user?.fullName ??
+              user?.username ??
               user?.primaryEmailAddress?.emailAddress}
           </span>
         </div>
