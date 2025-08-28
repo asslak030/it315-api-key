@@ -32,6 +32,16 @@ type KeyItem = {
   revoked: boolean;
 };
 
+type CreateKeyResponse = {
+  key?: string;
+  id?: string;
+  error?: string;
+};
+
+type LoadKeysResponse = KeyItem[] | { error?: string };
+
+type RevokeKeyResponse = { error?: string };
+
 export default function KeysPage() {
   const [name, setName] = useState("My API Key");
   const [justCreated, setJustCreated] = useState<{
@@ -51,7 +61,9 @@ export default function KeysPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-      const data = await res.json();
+
+      const data: CreateKeyResponse = await res.json();
+
       console.log("API response:", data); // ✅ DEBUG LOG
 
       if (res.ok && data.key && data.id) {
@@ -68,16 +80,35 @@ export default function KeysPage() {
   }
 
   async function load() {
-    const res = await fetch("/keys/api", { cache: "no-store" });
-    const data = await res.json();
-    setItems(data ?? []);
+    try {
+      const res = await fetch("/keys/api", { cache: "no-store" });
+      const data: LoadKeysResponse = await res.json();
+
+      if (Array.isArray(data)) {
+        setItems(data);
+      } else {
+        alert(data.error ?? "Failed to load keys");
+      }
+    } catch (err) {
+      console.error("Error loading keys:", err);
+      alert("An unexpected error occurred");
+    }
   }
 
   async function revokeKey(id: string) {
-    const res = await fetch(`/keys/api?keyId=${id}`, { method: "DELETE" });
-    const data = await res.json();
-    if (!res.ok) alert(data.error ?? "Failed to revoke ");
-    await load();
+    try {
+      const res = await fetch(`/keys/api?keyId=${id}`, { method: "DELETE" });
+      const data: RevokeKeyResponse = await res.json();
+
+      if (!res.ok) {
+        alert(data.error ?? "Failed to revoke");
+      } else {
+        await load();
+      }
+    } catch (err) {
+      console.error("Error revoking key:", err);
+      alert("An unexpected error occurred");
+    }
   }
 
   useEffect(() => {
