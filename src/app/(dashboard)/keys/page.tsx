@@ -32,16 +32,6 @@ type KeyItem = {
   revoked: boolean;
 };
 
-type CreateKeyResponse = {
-  key?: string;
-  id?: string;
-  error?: string;
-};
-
-type LoadKeysResponse = KeyItem[] | { error?: string };
-
-type RevokeKeyResponse = { error?: string };
-
 export default function KeysPage() {
   const [name, setName] = useState("My API Key");
   const [justCreated, setJustCreated] = useState<{
@@ -61,9 +51,7 @@ export default function KeysPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-
-      const data: CreateKeyResponse = await res.json();
-
+      const data: { key?: string; id?: string; error?: string } = await res.json();
       console.log("API response:", data); // ✅ DEBUG LOG
 
       if (res.ok && data.key && data.id) {
@@ -82,37 +70,27 @@ export default function KeysPage() {
   async function load() {
     try {
       const res = await fetch("/keys/api", { cache: "no-store" });
-      const data: LoadKeysResponse = await res.json();
-
-      if (Array.isArray(data)) {
-        setItems(data);
-      } else {
-        alert(data.error ?? "Failed to load keys");
-      }
+      const data: KeyItem[] = await res.json();
+      setItems(data ?? []);
     } catch (err) {
       console.error("Error loading keys:", err);
-      alert("An unexpected error occurred");
     }
   }
 
   async function revokeKey(id: string) {
     try {
       const res = await fetch(`/keys/api?keyId=${id}`, { method: "DELETE" });
-      const data: RevokeKeyResponse = await res.json();
-
-      if (!res.ok) {
-        alert(data.error ?? "Failed to revoke");
-      } else {
-        await load();
-      }
+      const data: { error?: string; success?: boolean } = await res.json();
+      if (!res.ok) alert(data.error ?? "Failed to revoke");
+      await load();
     } catch (err) {
       console.error("Error revoking key:", err);
-      alert("An unexpected error occurred");
+      alert("An unexpected error occurred while revoking the key.");
     }
   }
 
   useEffect(() => {
-    load();
+    void load();
   }, []);
 
   return (
@@ -151,9 +129,7 @@ export default function KeysPage() {
         <div className="pt-6 border-t border-gray-800 flex items-center gap-3">
           <UserButton afterSignOutUrl="/" />
           <span className="text-sm font-medium truncate">
-            {user?.fullName ??
-              user?.username ??
-              user?.primaryEmailAddress?.emailAddress}
+            {user?.fullName ?? user?.username ?? user?.primaryEmailAddress?.emailAddress}
           </span>
         </div>
       </aside>
@@ -204,8 +180,11 @@ export default function KeysPage() {
                   <code className="text-sm break-all text-gray-200">
                     {justCreated.key ?? "No key returned"}
                   </code>
-                  <div className="bg-white rounded p-1">
-                    <CopyButton value={justCreated.key} />
+                  <div>
+                    <CopyButton
+                      value={justCreated.key}
+                      
+                    />
                   </div>
                 </div>
                 <p className="text-gray-400 mt-2 text-xs">
@@ -213,93 +192,83 @@ export default function KeysPage() {
                   again.
                 </p>
                 <Button
-                  size="sm"
-                  className="mt-2 bg-gray-700 text-white hover:bg-gray-600"
-                  onClick={async () => {
+                  variant="default"
+                  onClick={() => {
                     setJustCreated(null);
-                    await load();
+                    void load();
                   }}
+                  className="mt-2 bg-gray-900 text-yellow-400 border border-yellow-400 hover:bg-yellow-500 hover:text-black transition-colors duration-200"
                 >
                   Close
                 </Button>
               </div>
-            ) : (
-              <p className="text-gray-500 text-sm italic">No key generated yet.</p>
-            )}
+            ) : null}
           </CardContent>
         </Card>
 
-        {/* Keys Table */}
+        {/* API Keys List */}
         <Card className="border-gray-700 bg-black text-white">
           <CardHeader>
-            <CardTitle className="text-yellow-400">Your Keys</CardTitle>
+            <CardTitle className="text-yellow-400">Your API Keys</CardTitle>
           </CardHeader>
+
           <CardContent>
             <Table>
               <TableHeader>
-                <TableRow className="border-gray-700">
-                  <TableHead className="text-yellow-400">Name</TableHead>
-                  <TableHead className="text-yellow-400">Key</TableHead>
-                  <TableHead className="text-yellow-400">Created</TableHead>
-                  <TableHead className="text-yellow-400">Status</TableHead>
-                  <TableHead className="text-right text-yellow-400">
-                    Actions
-                  </TableHead>
+                <TableRow>
+                  <TableHead className="text-yellow-400 text-lg font-semibold">Name</TableHead>
+                  <TableHead className="text-yellow-400 text-lg font-semibold">Key</TableHead>
+                  <TableHead className="text-yellow-400 text-lg font-semibold">Created</TableHead>
+                  <TableHead className="text-yellow-400 text-lg font-semibold">Status</TableHead>
+                  <TableHead className="text-yellow-400 text-lg font-semibold">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((row) => (
-                  <TableRow key={row.id} className="border-gray-700">
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell className="font-mono">{row.masked}</TableCell>
-                    <TableCell>
-                      {new Date(row.createdAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {row.revoked ? (
-                        <Badge variant="secondary">Revoked</Badge>
-                      ) : (
-                        <Badge>ACTIVE</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="bg-red-600 hover:bg-red-700"
-                        disabled={row.revoked}
-                        onClick={() => revokeKey(row.id)}
-                      >
-                        Revoke
-                      </Button>
+                {items.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-gray-400">
+                      No API keys found.
                     </TableCell>
                   </TableRow>
-                ))}
-                {items.length === 0 && (
-                  <TableRow className="border-gray-700">
-                    <TableCell
-                      colSpan={5}
-                      className="text-gray-500 text-center text-sm"
-                    >
-                      No keys available.
-                    </TableCell>
-                  </TableRow>
+                ) : (
+                  items.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>
+                        <code>{row.masked}</code>
+                        {/* Removed CopyButton here as requested */}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(row.createdAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        {row.revoked ? (
+                          <Badge variant="outline" className="text-gray-400">
+                            Revoked
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">Active</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {!row.revoked && (
+                          <Button
+                            variant="destructive"
+                            onClick={async () => {
+                              await revokeKey(row.id);
+                            }}
+                          >
+                            Revoke
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
-
-        <Separator className="bg-gray-700" />
-        <p className="text-gray-300 text-sm">
-          To upload artwork, include the{" "}
-          <code className="text-yellow-400">x-access-key</code> header in your
-          request. See the{" "}
-          <Link className="underline text-yellow-400" href={"/docs"}>
-            guide
-          </Link>{" "}
-          for details.
-        </p>
       </main>
     </div>
   );

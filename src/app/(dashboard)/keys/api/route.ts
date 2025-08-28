@@ -5,14 +5,11 @@ import { createKeySchema, DeleteKeySchema } from "~/server/db/validation";
 
 export async function POST(req: NextRequest) {
   try {
-    // Parse and validate request body with explicit type inference
-    const body = await req.json();
+    const body: unknown = await req.json();
     const { name } = createKeySchema.parse(body);
-
     const created = await insertKey(name);
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
-    // Safer error handling - check if error is instance of Error
     if (error instanceof Error) {
       return NextResponse.json(
         { error: error.message ?? "Failed to create API key" },
@@ -41,25 +38,10 @@ export async function GET() {
 export async function DELETE(req: NextRequest) {
   try {
     const keyId = new URL(req.url).searchParams.get("keyId");
-
-    if (!keyId) {
-      return NextResponse.json(
-        { error: "Missing keyId parameter" },
-        { status: 400 }
-      );
-    }
-
-    // Validate keyId with DeleteKeySchema
     const { keyId: parsedKeyId } = DeleteKeySchema.parse({ keyId });
     const ok = await revokeKey(parsedKeyId);
-
-    if (!ok) {
-      return NextResponse.json(
-        { error: "API key not found" },
-        { status: 404 }
-      );
-    }
-
+    if (!ok)
+      return NextResponse.json({ error: "API key not found" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof Error) {
