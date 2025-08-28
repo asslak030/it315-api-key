@@ -21,7 +21,6 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { Separator } from "@radix-ui/react-separator";
 import { UserButton, useUser } from "@clerk/nextjs";
 
 type KeyItem = {
@@ -30,6 +29,17 @@ type KeyItem = {
   masked: string;
   createdAt: string;
   revoked: boolean;
+};
+
+type CreateKeyResponse = {
+  key?: string;
+  id?: string;
+  error?: string;
+};
+
+type RevokeResponse = {
+  success?: boolean;
+  error?: string;
 };
 
 export default function KeysPage() {
@@ -51,13 +61,13 @@ export default function KeysPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-      const data: { key?: string; id?: string; error?: string } = await res.json();
-      console.log("API response:", data); // ✅ DEBUG LOG
+
+      const data: CreateKeyResponse = await res.json();
 
       if (res.ok && data.key && data.id) {
         setJustCreated({ key: data.key, id: data.id });
       } else {
-        alert(data.error ?? "Failed to create key (missing data)");
+        alert(data.error ?? "Failed to create key");
       }
     } catch (err) {
       console.error("Error creating key:", err);
@@ -80,7 +90,7 @@ export default function KeysPage() {
   async function revokeKey(id: string) {
     try {
       const res = await fetch(`/keys/api?keyId=${id}`, { method: "DELETE" });
-      const data: { error?: string; success?: boolean } = await res.json();
+      const data: RevokeResponse = await res.json();
       if (!res.ok) alert(data.error ?? "Failed to revoke");
       await load();
     } catch (err) {
@@ -177,27 +187,23 @@ export default function KeysPage() {
                   Here is your API key (visible once):
                 </p>
                 <div className="mt-2 flex items-center gap-2">
-                  <code className="text-sm break-all text-gray-200">
+                  <code className="text-sm break-all text-white">
                     {justCreated.key ?? "No key returned"}
                   </code>
-                  <div>
-                    <CopyButton
-                      value={justCreated.key}
-                      
-                    />
+                  <div className="bg-gray-800 rounded p-1 text-white">
+                    <CopyButton value={justCreated.key} className="text-white" />
                   </div>
                 </div>
                 <p className="text-gray-400 mt-2 text-xs">
-                  Please store this key securely. It will not be displayed
-                  again.
+                  Please store this key securely. It will not be displayed again.
                 </p>
                 <Button
-                  variant="default"
+                  variant="outline"
                   onClick={() => {
                     setJustCreated(null);
                     void load();
                   }}
-                  className="mt-2 bg-gray-900 text-yellow-400 border border-yellow-400 hover:bg-yellow-500 hover:text-black transition-colors duration-200"
+                  className="mt-2 text-white border-white hover:bg-gray-700"
                 >
                   Close
                 </Button>
@@ -216,11 +222,11 @@ export default function KeysPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-yellow-400 text-lg font-semibold">Name</TableHead>
-                  <TableHead className="text-yellow-400 text-lg font-semibold">Key</TableHead>
-                  <TableHead className="text-yellow-400 text-lg font-semibold">Created</TableHead>
-                  <TableHead className="text-yellow-400 text-lg font-semibold">Status</TableHead>
-                  <TableHead className="text-yellow-400 text-lg font-semibold">Action</TableHead>
+                  <TableHead className="text-white font-bold">Name</TableHead>
+                  <TableHead className="text-white font-bold">Key</TableHead>
+                  <TableHead className="text-white font-bold">Created</TableHead>
+                  <TableHead className="text-white font-bold">Status</TableHead>
+                  <TableHead className="text-white font-bold">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -236,7 +242,6 @@ export default function KeysPage() {
                       <TableCell>{row.name}</TableCell>
                       <TableCell>
                         <code>{row.masked}</code>
-                        {/* Removed CopyButton here as requested */}
                       </TableCell>
                       <TableCell>
                         {new Date(row.createdAt).toLocaleString()}
