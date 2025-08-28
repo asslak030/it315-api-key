@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { BookOpen, Plus, Menu, ImageIcon } from "lucide-react";
@@ -23,12 +23,68 @@ import {
 import { Badge } from "~/components/ui/badge";
 import { Separator } from "@radix-ui/react-separator";
 import { UserButton, useUser } from "@clerk/nextjs";
+import { z } from "zod";
+
+// Zod schemas
+const CreatedKeySchema = z.object({ name: z.string().min(5).max(100) });
+const DeleteKeySchema = z.object({ keyid: z.string().uuid() });
+
+type KeyItem = {
+  id: string;
+  name: string;
+  masked: string;
+  createdAt: string;
+  revoked: boolean;
+};
 
 export default function KeysPage() {
-  const sampleApiKey = "museum-access-key-123";
+  const [name, setName] = useState("My API Key");
+  const [justCreated, setJustCreated] = useState<{
+    key: string;
+    id: string; 
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState<KeyItem[]>([]);
   const { user } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  async function createKey() {
+    // Validate input using Zod schema
+    const validation = CreatedKeySchema.safeParse({ name });
+    if (!validation.success) {
+      alert("Key name must be between 5 and 100 characters");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: { "content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setJustCreated({ key: data.key, id: data.id });
+        //await load();
+      } else {
+        alert(data.error ?? "Failed to create key");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function load() {
+    const res = await fetch("/api/keys", { cache: "no-store" });
+    const data = await res.json();
+    setItems(data.items ?? []);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+ 
   return (
     <div className="flex min-h-screen bg-black text-white font-serif">
       {/* Sidebar */}
@@ -96,6 +152,9 @@ export default function KeysPage() {
             </CardTitle>
             <Button
               className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-400"
+              aria-label="Create API key"
+              onClick={createKey}
+              disabled={loading}
             >
               <Plus />
               Create
@@ -106,24 +165,26 @@ export default function KeysPage() {
             <Input
               placeholder="Key name (e.g., Exhibition 2025)"
               className="bg-black border-gray-600 text-white placeholder-gray-400"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
 
-            <div className="rounded-md border border-gray-700 p-3 bg-gray-900">
-              <p className="text-sm font-medium text-yellow-300">
-                Newly generated key (visible once):
-              </p>
-              <div className="mt-2 flex items-center gap-2">
-                <code className="text-sm break-all text-gray-200">
-                  {sampleApiKey}
-                </code>
-                <div className="text-black">
-                  <CopyButton value={sampleApiKey} />
+            {justCreated && (
+              <div className="rounded-md border border-gray-700 p-3 bg-gray-900">
+                <p className="text-sm font-medium text-yellow-300">
+                  Here is your API key (visible once):
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <code className="text-sm break-all text-gray-200">{justCreated.key}</code>
+                  <div className="text-black">
+                    <CopyButton value={justCreated.key} />
+                  </div>
                 </div>
+                <p className="text-gray-400 mt-2 text-xs">
+                  Please store this key securely. It will not be displayed again.
+                </p>
               </div>
-              <p className="text-gray-400 mt-2 text-xs">
-                Please store this key securely. It will not be displayed again.
-              </p>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -146,31 +207,41 @@ export default function KeysPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow className="border-gray-700">
-                  <TableCell>Exhibition Key</TableCell>
-                  <TableCell className="font-mono">{sampleApiKey}</TableCell>
-                  <TableCell>8/21/2025</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">Active</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700"
+                {items.map((row) => (
+                  <TableRow key={row.id} className="border-gray-700">
+                    <TableCell>{row.name}</TableCell>
+                    <TableCell className="font-mono">{row.masked}</TableCell>
+                    <TableCell>
+                      {new Date(row.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {row.revoked ? (
+                        <Badge variant="secondary">Revoked</Badge>
+                      ) : (
+                        <Badge>ACTIVE</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Revoke
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {items.length === 0 && (
+                  <TableRow className="border-gray-700">
+                    <TableCell
+                      colSpan={5}
+                      className="text-gray-500 text-center text-sm"
                     >
-                      Revoke
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow className="border-gray-700">
-                  <TableCell
-                    colSpan={5}
-                    className="text-gray-500 text-center text-sm"
-                  >
-                    No keys available.
-                  </TableCell>
-                </TableRow>
+                      No keys available. 
+                    </TableCell> 
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
