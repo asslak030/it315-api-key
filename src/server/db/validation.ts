@@ -1,4 +1,4 @@
-import { z } from "zod";
+import {z} from "zod";
 
-export const CreatedKeySchema = z.object({ name: z.string().min(5).max(100) });
-export const DeleteKeySchema = z.object({ keyid: z.string().uuid() });
+export const createKeySchema = z.object({ name: z.string().min(5).max(100), });
+export const DeleteKeySchema = z.object({ keyId: z.string().uuid(), });
