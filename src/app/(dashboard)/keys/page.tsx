@@ -187,13 +187,14 @@ export default function KeysPage() {
                   Here is your API key (visible once):
                 </p>
                 <div className="mt-2 flex items-center gap-2">
-                  <code className="text-sm break-all text-white">
-                    {justCreated.key ?? "No key returned"}
-                  </code>
-                  <div className="bg-gray-800 rounded p-1 text-white">
-                    <CopyButton value={justCreated.key} className="text-white" />
-                  </div>
-                </div>
+  <code className="text-sm break-all text-white">
+    {justCreated.key ?? "No key returned"}
+  </code>
+  <div className="bg-gray-800 rounded p-1 text-white">
+    <CopyButton value={justCreated.key} />
+  </div>
+</div>
+
                 <p className="text-gray-400 mt-2 text-xs">
                   Please store this key securely. It will not be displayed again.
                 </p>
