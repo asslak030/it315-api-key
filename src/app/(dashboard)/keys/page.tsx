@@ -1,12 +1,13 @@
-"use client";
-
-import { useEffect, useState } from "react";
+"use client"
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { BookOpen, Plus, Menu, ImageIcon } from "lucide-react";
+import { BookOpen, Plus } from "lucide-react";
 import {
   Card,
+  CardAction,
   CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
@@ -15,6 +16,7 @@ import CopyButton from "~/components/copy-button";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -22,12 +24,7 @@ import {
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
 import { Separator } from "@radix-ui/react-separator";
-import { UserButton, useUser } from "@clerk/nextjs";
-import { z } from "zod";
-
-// Zod schemas
-const CreatedKeySchema = z.object({ name: z.string().min(5).max(100) });
-const DeleteKeySchema = z.object({ keyid: z.string().uuid() });
+import { useEffect, useState } from "react";
 
 type KeyItem = {
   id: string;
@@ -41,223 +38,165 @@ export default function KeysPage() {
   const [name, setName] = useState("My API Key");
   const [justCreated, setJustCreated] = useState<{
     key: string;
-    id: string; 
-  } | null>(null);
-  const [loading, setLoading] = useState(false);
+    id: string;
+  } | null>(null);  
+  const [loading, setLoading] = useState(false);  
   const [items, setItems] = useState<KeyItem[]>([]);
-  const { user } = useUser();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   async function createKey() {
-    // Validate input using Zod schema
-    const validation = CreatedKeySchema.safeParse({ name });
-    if (!validation.success) {
-      alert("Key name must be between 5 and 100 characters");
-      return;
-    }
-    
     setLoading(true);
     try {
       const res = await fetch("/api/keys", {
         method: "POST",
-        headers: { "content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }), 
       });
       const data = await res.json();
+      setJustCreated(data);
       if (res.ok) {
-        setJustCreated({ key: data.key, id: data.id });
-        //await load();
-      } else {
-        alert(data.error ?? "Failed to create key");
+        setJustCreated({ key: data.key, id: data.id }); 
+        await load();
+      }else{
+        alert(data.error ?? "Failed to create API key");
       }
     } finally {
       setLoading(false);
     }
   }
-
   async function load() {
-    const res = await fetch("/api/keys", { cache: "no-store" });
+  const res = await fetch("/api/keys", { cache: "no-store" });
+  const data = await res.json();
+  setItems(data ?? []);
+}
+
+  async function revokeKey(id: string) {
+    const res = await fetch(`/api/keys?keyId=${id}`, { method: "DELETE" });
     const data = await res.json();
-    setItems(data.items ?? []);
+    if (!res.ok) alert(data.error ?? "Failed to revoke API key");
+    await load(); 
   }
 
   useEffect(() => {
     load();
-  }, []);
- 
+  }, [createKey, revokeKey]);
+
   return (
-    <div className="flex min-h-screen bg-black text-white font-serif">
-      {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-0 h-full w-64 border-r border-gray-800 bg-black p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out z-40
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
-      >
-        <div className="space-y-6">
-          <h2 className="text-xl font-bold tracking-wide text-yellow-500">
-            Art Museum
-          </h2>
-          <nav className="flex flex-col gap-3">
-            <Link href={"/docs"}>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 w-full justify-start border-gray-600 bg-white text-black hover:bg-gray-200"
-              >
-                <BookOpen className="h-4 w-4" />
-                Guide
-              </Button>
-            </Link>
-            <Link href={"/gallery"}>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 w-full justify-start border-gray-600 bg-white text-black hover:bg-gray-200"
-              >
-                <ImageIcon className="h-4 w-4" />
-                Gallery
-              </Button>
-            </Link>
-          </nav>
-        </div>
-
-        {/* User menu at bottom */}
-        <div className="pt-6 border-t border-gray-800 flex items-center gap-3">
-          <UserButton afterSignOutUrl="/" />
-          <span className="text-sm font-medium truncate">
-            {user?.fullName ??
-              user?.username ??
-              user?.primaryEmailAddress?.emailAddress}
-          </span>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main
-        className={`flex-1 p-8 space-y-6 transition-all duration-300 ease-in-out
-          ${sidebarOpen ? "ml-64" : "ml-0"}`}
-      >
-        {/* Top Toolbar */}
-        <div className="flex items-center justify-between">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <Menu className="h-6 w-6 text-gray-400 hover:text-yellow-500" />
-          </button>
-          <h1 className="text-2xl font-bold text-yellow-500">
-            Access Keys
-          </h1>
-        </div>
-
-        {/* Generate Access Key */}
-        <Card className="border-gray-700 bg-black text-white">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-lg text-yellow-400">
-              Generate Access Key
-            </CardTitle>
+    <div className="mx-auto max-w-4xl space-y-6 p-6">
+      {/* Top Toolbar */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">API Keys</h1>
+        <div className="flex gap-2">
+          <Link href={"/docs"}>
             <Button
-              className="flex items-center gap-2 bg-yellow-500 text-black hover:bg-yellow-400"
-              aria-label="Create API key"
-              onClick={createKey}
-              disabled={loading}
+              variant={"outline"}
+              className="flex items-center gap-2"
+              aria-label="Open API Guide"
             >
-              <Plus />
-              Create
+              <BookOpen />
+              View API Documentation
             </Button>
-          </CardHeader>
+          </Link>
+        </div>
+      </div>
 
-          <CardContent className="space-y-3">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>Generate API Key</CardTitle>
+          <Button className="flex items-center gap-2" aria-label="Create API key" 
+          onClick={createKey} 
+          disabled={loading}
+          >
+            <Plus />
+            Create
+          </Button>
+        </CardHeader>
+
+        <CardContent className="space-y-3">
+          <div className="flex gap-2">
             <Input
-              placeholder="Key name (e.g., Exhibition 2025)"
-              className="bg-black border-gray-600 text-white placeholder-gray-400"
+              placeholder="Key Name (e.g., Production)"
+              aria-label="API Key Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+          </div>
 
-            {justCreated && (
-              <div className="rounded-md border border-gray-700 p-3 bg-gray-900">
-                <p className="text-sm font-medium text-yellow-300">
-                  Here is your API key (visible once):
-                </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <code className="text-sm break-all text-gray-200">{justCreated.key}</code>
-                  <div className="text-black">
-                    <CopyButton value={justCreated.key} />
-                  </div>
-                </div>
-                <p className="text-gray-400 mt-2 text-xs">
-                  Please store this key securely. It will not be displayed again.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          {justCreated && (<div className="rounded-md border p-3">
+            <p className="text-sm font-medium">
+              Here is your API Key (visible once):{" "}
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <code className="text-sm break-all">{justCreated.key}</code>
+              <CopyButton value={justCreated.key} />
+            </div>
+            <p className="text-muted-foreground mt-2 text-xs">
+              Save this key securely. You won't be able to see it again.
+            </p>
+          </div>)}
+          
+        </CardContent>
+      </Card>
 
-        {/* Keys Table */}
-        <Card className="border-gray-700 bg-black text-white">
-          <CardHeader>
-            <CardTitle className="text-yellow-400">Your Keys</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-gray-700">
-                  <TableHead className="text-yellow-400">Name</TableHead>
-                  <TableHead className="text-yellow-400">Key</TableHead>
-                  <TableHead className="text-yellow-400">Created</TableHead>
-                  <TableHead className="text-yellow-400">Status</TableHead>
-                  <TableHead className="text-right text-yellow-400">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((row) => (
-                  <TableRow key={row.id} className="border-gray-700">
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell className="font-mono">{row.masked}</TableCell>
-                    <TableCell>
-                      {new Date(row.createdAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {row.revoked ? (
-                        <Badge variant="secondary">Revoked</Badge>
-                      ) : (
-                        <Badge>ACTIVE</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Revoke
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {items.length === 0 && (
-                  <TableRow className="border-gray-700">
-                    <TableCell
-                      colSpan={5}
-                      className="text-gray-500 text-center text-sm"
-                    >
-                      No keys available. 
-                    </TableCell> 
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      <Card>
+  <CardHeader>
+    <CardTitle>Your Keys</CardTitle>
+  </CardHeader>
+  <CardContent>
+<Table>
+  <TableHeader>
+    <TableRow>
+      <TableHead>Name</TableHead>
+      <TableHead>Key</TableHead>
+      <TableHead>Created</TableHead>
+      <TableHead>Status</TableHead>
+      
+      <TableHead className="text-right">Actions</TableHead>
+    </TableRow>
+  </TableHeader>
+  <TableBody>
+    {items.map((row) => (
+      <TableRow key={row.id}>
+        <TableCell>{row.name}</TableCell>
+        <TableCell className="font-mono">{row.masked}</TableCell>
+        <TableCell>
+          {new Date(row.createdAt).toLocaleString()}
+          {row.revoked ? (
+            <Badge variant={"secondary"}> Revoked </Badge>
+          ) : (
+            <Badge>Active</Badge>
+          )}
+        </TableCell>  
+        <TableCell className="text-right">
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={row.revoked}
+            onClick={() => revokeKey(row.id)}
+          >
+             Revoke
+          </Button>
+        </TableCell>
+      </TableRow>
+    ))}
+    {items.length === 0 && (
+      <TableRow>
+        <TableCell colSpan={5} className="text-center">
+          No API keys found.
+        </TableCell>
+      </TableRow>
+    )}
+  </TableBody>
+</Table>
+  </CardContent>
+  
+</Card> 
 
-        <Separator className="bg-gray-700" />
-        <p className="text-gray-300 text-sm">
-          To upload artwork, include the{" "}
-          <code className="text-yellow-400">x-access-key</code> header in your request.  
-          See the{" "}
-          <Link className="underline text-yellow-400" href={"/docs"}>
-            guide
-          </Link>{" "}
-          for details.
-        </p>
-      </main>
+<Separator /> 
+<p>Tip: Call secured endpoints with the <code>x-api-key</code> header. See{" "}
+<Link className={"underline"} href ={"/docs"}>
+Docs
+</Link>
+</p>
     </div>
   );
 }
