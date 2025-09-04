@@ -18,12 +18,13 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: result.reason }, { status: 401 });
   }
 
-  // Parse and validate the body
+  // ✅ Safe parsing with Zod
   let body: z.infer<typeof EchoSchema>;
   try {
-    const json = await req.json();
+    const json: unknown = await req.json(); // <-- no `any`
     body = EchoSchema.parse(json);
-  } catch (err) {
+  } catch {
+    // removed `err` since we don’t use it
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 

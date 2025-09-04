@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
