@@ -19,14 +19,17 @@ const geist = Geist({
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <ClerkProvider>
-    <html lang="en" className={`${geist.variable}dark`}>
-      <body className="bg-black text-white">
-        <TopNav />
-        <main>{children}</main></body>
-    </html>
+      <html lang="en" className={`${geist.variable}dark`}>
+        <body className="bg-black text-white" suppressHydrationWarning={true}>
+          <TopNav />
+          <main>{children}</main>
+        </body>
+      </html>
     </ClerkProvider>
-  );
+  )
 }
