@@ -2,6 +2,23 @@
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { 
+  Gamepad2, 
+  Zap, 
+  Shield, 
+  Star, 
+  Upload, 
+  Key,
+  Sparkles,
+  Play,
+  Power,
+  Trophy,
+  Sword,
+  Target
+} from "lucide-react";
+import { Button } from "~//components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 
 function RedirectToKeys() {
   const router = useRouter();
@@ -13,67 +30,225 @@ function RedirectToKeys() {
 
 export default function HomePage() {
   return (
-    <main className="">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-1 h-1 bg-pink-400 rounded-full animate-ping"></div>
+        <div className="absolute bottom-32 left-1/4 w-3 h-3 bg-green-400 rounded-full animate-bounce"></div>
+        <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZUOnVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDk5LCAyMDIsIDI1NSwgMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPjwvc3ZnPg==')] opacity-30"></div>
+      </div>
+
       <SignedOut>
-        {/* ✅ Hover Container */}
-        <div className="w-full flex justify-center mt-6 px-4">
-          <div className="group relative w-full max-w-3xl bg-gray-900 text-white rounded-lg shadow-lg p-6 cursor-pointer overflow-hidden transition-all duration-500">
-            {/* Default text (before hover) */}
-            <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold opacity-100 group-hover:opacity-0 transition-opacity duration-500">
-              PLEASE SIGN IN
+        {/* Hero Section */}
+        <div className="relative z-10 pt-20 pb-16">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-16">
+              <div className="flex justify-center items-center gap-3 mb-6">
+                <Gamepad2 className="w-12 h-12 text-cyan-400" />
+                <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  NEXUS
+                </h1>
+                <Sparkles className="w-12 h-12 text-pink-400" />
+              </div>
+              <p className="text-2xl text-slate-300 font-light tracking-wide">
+                GAMING GALLERY SYSTEM
+              </p>
+              <div className="flex justify-center gap-2 mt-4">
+                <Badge variant="outline" className="border-cyan-400 text-cyan-400 bg-cyan-400/10">
+                  <Zap className="w-3 h-3 mr-1" />
+                  POWERED BY AI
+                </Badge>
+                <Badge variant="outline" className="border-purple-400 text-purple-400 bg-purple-400/10">
+                  <Shield className="w-3 h-3 mr-1" />
+                  SECURE
+                </Badge>
+                <Badge variant="outline" className="border-pink-400 text-pink-400 bg-pink-400/10">
+                  <Star className="w-3 h-3 mr-1" />
+                  PREMIUM
+                </Badge>
+              </div>
             </div>
 
-            {/* Hover text (description) */}
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-              <h1 className="text-2xl font-bold mb-2 text-center">
-                Welcome to Our Art Gallery System 🎨
-              </h1>
-              <p className="text-gray-300 text-lg leading-relaxed text-center">
-                To upload your photos and manage them, you need to{" "}
-                <span className="font-semibold text-white">sign in first</span>.  
-                Once signed in, you’ll receive your own{" "}
-                <span className="font-semibold text-white">API keys</span> to upload and access your images.
-              </p>
+            {/* Main CTA Card */}
+            <div className="flex justify-center mb-16">
+              <Card className="group relative w-full max-w-4xl bg-gradient-to-r from-slate-900/80 to-purple-900/80 border border-cyan-400/30 backdrop-blur-xl shadow-2xl overflow-hidden transition-all duration-700 hover:shadow-cyan-400/20 hover:shadow-2xl cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/10 via-transparent to-pink-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Animated Border */}
+                <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-lg opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div className="absolute inset-[2px] bg-gradient-to-r from-slate-900/95 to-purple-900/95 rounded-lg"></div>
+                
+                <CardContent className="relative z-10 p-12">
+                  {/* Default State */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-100 group-hover:opacity-0 transition-all duration-500">
+                    <div className="flex items-center gap-4 mb-4">
+                      <Power className="w-12 h-12 text-cyan-400 animate-pulse" />
+                      <span className="text-4xl font-black text-white tracking-wider">
+                        INITIALIZE SESSION
+                      </span>
+                      <Power className="w-12 h-12 text-pink-400 animate-pulse" />
+                    </div>
+                    <p className="text-cyan-400 text-lg font-mono">
+                      AUTHENTICATION REQUIRED
+                    </p>
+                  </div>
+
+                  {/* Hover State */}
+                  <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
+                    <div className="text-center">
+                      <h2 className="text-3xl font-black text-white mb-6">
+                        🚀 ENTER THE DIGITAL REALM
+                      </h2>
+                      <div className="grid md:grid-cols-2 gap-8 items-center">
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-cyan-400/20">
+                            <Upload className="w-6 h-6 text-cyan-400" />
+                            <span className="text-white">Upload & Manage Digital Assets</span>
+                          </div>
+                          <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-purple-400/20">
+                            <Key className="w-6 h-6 text-purple-400" />
+                            <span className="text-white">Personal API Access Keys</span>
+                          </div>
+                          <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-pink-400/20">
+                            <Shield className="w-6 h-6 text-pink-400" />
+                            <span className="text-white">Quantum-Level Security</span>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <Button 
+                            size="lg" 
+                            className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-105"
+                          >
+                            <Play className="w-5 h-5 mr-2" />
+                            START MISSION
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+{/* Gaming-Themed Art Gallery */}
+<div className="grid md:grid-cols-3 gap-6 max-w-7xl mx-auto">
+  {[
+    {
+      url: "https://i.pinimg.com/1200x/b2/1d/20/b21d20f5ca7ffd5169404ce0fe983f60.jpg",
+      title: "VALORANT",
+      artist: "Your callouts are as useful as a smoke grenade in a hurricane. I'll just clutch this 1v5 myself.",
+      level: "BOSS TIER",
+      rarity: "MYTHIC",
+      color: "cyan",
+      xp: "2,500 XP"
+    },
+    {
+      url: "https://i.pinimg.com/736x/84/b3/b3/84b3b3b187590abab8d85518e1407b3c.jpg",
+      title: "GENSHIN IMPACT",
+      artist: "Your main DPS does less damage than my Barbara's splash attack. Maybe reroll your account... and your life.",
+      level: "ELITE",
+      rarity: "LEGENDARY",
+      color: "purple",
+      xp: "1,800 XP"
+    },
+    {
+      url: "https://i.pinimg.com/1200x/76/b4/f8/76b4f853af6d62f8ded7a30670c34fce.jpg",
+      title: "LEAGUE OF LEGENDS",
+      artist: "0/10/2 before 15 minutes? You're not playing a champion, you're playing a resource for the enemy team.",
+      level: "CHAMPION",
+      rarity: "EPIC",
+      color: "pink",
+      xp: "3,200 XP"
+    },
+  ].map((art, index) => (
+    <Card
+      key={index}
+      className="group relative bg-slate-900/50 border border-slate-700 overflow-hidden transition-all duration-500 hover:border-cyan-400/50 hover:shadow-2xl hover:shadow-cyan-400/10 hover:scale-105"
+    >
+      {/* Portrait container with proper aspect ratio */}
+      <div className="relative w-full pt-[125%] overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={art.url}
+            alt={art.title}
+            className="w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-110 filter brightness-90 group-hover:brightness-100"
+            style={{
+              imageRendering: 'crisp-edges'
+            }}
+            loading="lazy"
+          />
+        </div>
+        
+        {/* Gaming Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
+          <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
+            <div className="flex items-center gap-2 mb-3">
+              <Badge 
+                className={`${
+                  art.color === 'cyan' ? 'bg-cyan-400/20 border-cyan-400 text-cyan-400' :
+                  art.color === 'purple' ? 'bg-purple-400/20 border-purple-400 text-purple-400' :
+                  'bg-pink-400/20 border-pink-400 text-pink-400'
+                }`}
+              >
+                {art.rarity}
+              </Badge>
+              <div className="flex items-center gap-1 bg-slate-800/60 px-2 py-1 rounded-md">
+                <Trophy className="w-3 h-3 text-yellow-400" />
+                <span className="text-xs text-yellow-400 font-mono">{art.xp}</span>
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2 tracking-wide">{art.title}</h3>
+            <p className="text-slate-300 mb-3 font-mono text-sm">{art.artist}</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sword className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-400 font-mono">{art.level}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Target className="w-4 h-4 text-green-400" />
+                <span className="text-xs text-green-400 font-mono">ACQUIRED</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ✅ Images Section */}
-        <div className="flex justify-center gap-6 mt-8 px-4 flex-wrap">
-          {[
-            {
-              url: "https://scontent.fcrk1-4.fna.fbcdn.net/v/t1.15752-9/385530700_619380286848061_9174381589523629532_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeHIYl1GiuDmzMtJTmoGRhjLwULp4eJCrOrBQunh4kKs6ngRbNkkOIB5yvgWYxWiLOCnutXmwXcfr1yY1VKtJAmn&_nc_ohc=p1GhkfrC3ewQ7kNvwFcflGp&_nc_oc=AdkhfS95O7sUcDifIgyKGoG33rxbEqH6d_SuccRjlyOCKKSEzqtZY809rrs36RozbqE&_nc_zt=23&_nc_ht=scontent.fcrk1-4.fna&oh=03_Q7cD3AHhfVr1Qqb2asqyhiuAGRHHfR_BxIaCowT4Ye_wVX1rXw&oe=68CE981E",
-              title: "Girl with a Pearl Earring",
-              artist: "Johannes Vermeer",
-            },
-            {
-              url: "https://scontent.fcrk1-2.fna.fbcdn.net/v/t1.15752-9/529243525_584683944577840_8246590300739844339_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeH5EzWlasRDfFLitMSZWDJjEmPRCpQhPyUSY9EKlCE_Jelaru1sISghImYhjBfw9v77FUCa0VnnaAGIOi7Ai2up&_nc_ohc=KISI2te_4AkQ7kNvwGCFOlI&_nc_oc=AdnPvS7-J1oOA6vCHNdAliqkmw8Cc2XXgS1lJ4rMJHes71dUFD62yruZ1_TVTSRwbSY&_nc_zt=23&_nc_ht=scontent.fcrk1-2.fna&oh=03_Q7cD3AEa-OhYe4vsQt1WN9JjG9MB3i4tB9t42bZm-DIaTzI4HA&oe=68CEB75D",
-              title: "Leaning Tower of Pisa (Van Gogh Style)",
-              artist: "Bonanno Pisano",
-            },
-            {
-              url: "https://scontent.fcrk1-5.fna.fbcdn.net/v/t1.15752-9/526873278_3236127366553290_2190131994399160107_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeHB-gN9TI-WLkYc3OqZ8iSJwThqT4ArFKbBOGpPgCsUpvmyjfIaTZ0EAMFqhcEI8kYxBNSlPRwIoIiiDQ_hqxb-&_nc_ohc=ejUb0mKi8lgQ7kNvwGSVzGM&_nc_oc=AdneZvqRk3xJmg96-f2A53k903IijMGnvgjSgL15thcvJtGOQsFCKoMljmtLaEiYrZQ&_nc_zt=23&_nc_ht=scontent.fcrk1-5.fna&oh=03_Q7cD3AFNwW3Wzi-HpWdT0NBBBkiG6SHAcJy0j3yqmcKmGdKpoA&oe=68CE9D94",
-              title: "Mona Lisa",
-              artist: "Leonardo da Vinci",
-            },
-          ].map((art, index) => (
-            <div
-              key={index}
-              className="relative w-[300px] h-[400px] rounded-lg overflow-hidden group shadow-lg"
-            >
-              <img
-                src={art.url}
-                alt={art.title}
-                className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-100 backdrop-blur-sm opacity-0 group-hover:opacity-70 transition-opacity duration-300 flex items-center justify-center text-white px-4 text-center">
-                <div>
-                  <div className="text-xl font-bold mb-1">{art.title}</div>
-                  <div className="text-sm">{art.artist}</div>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Gaming HUD Elements */}
+        <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-cyan-400/30">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-xs text-white font-mono font-bold">ONLINE</span>
+          </div>
+        </div>
+        
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          <div className="bg-slate-900/90 backdrop-blur-sm p-2 rounded-lg border border-cyan-400/30">
+            <Star className={`w-5 h-5 ${
+              art.color === 'cyan' ? 'text-cyan-400' :
+              art.color === 'purple' ? 'text-purple-400' :
+              'text-pink-400'
+            }`} />
+          </div>
+        </div>
+
+        {/* Power Level Indicator */}
+        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          <div className="bg-slate-900/90 backdrop-blur-sm px-3 py-1 rounded-full border border-yellow-400/50">
+            <span className="text-xs text-yellow-400 font-mono font-bold">PWR: {1000 + index * 500}</span>
+          </div>
+        </div>
+
+        {/* Scan Lines Effect */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none">
+          <div className="h-full w-full bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent bg-[length:100%_4px] animate-pulse"></div>
+        </div>
+      </div>
+    </Card>
+  ))}
+</div>
+          </div>
         </div>
       </SignedOut>
 
