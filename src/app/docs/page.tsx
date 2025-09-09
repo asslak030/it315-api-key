@@ -19,21 +19,43 @@ export default function DocsPage() {
   const [out, setOut] = useState("");
   const [postBody, setPostBody] = useState("Hello, World!");
 
-  async function runGET() {
-    const res = await fetch(`${baseUrl}/api/ping`, {
+async function runGET() {
+  try {
+    const res = await fetch(`${baseUrl}/keys/api/ping`, {
       headers: { "x-api-key": key },
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     setOut(JSON.stringify(await res.json(), null, 2));
+  } catch (err: any) {
+    setOut(
+      JSON.stringify(
+        { error: "Fetch failed", details: err.toString() },
+        null,
+        2
+      )
+    );
   }
+}
 
-  async function runPOST() {
-    const res = await fetch(`${baseUrl}/api/echo`, {
+async function runPOST() {
+  try {
+    const res = await fetch(`${baseUrl}/keys/api/echo`, {
       method: "POST",
       headers: { "x-api-key": key, "Content-Type": "application/json" },
       body: JSON.stringify({ postBody }),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     setOut(JSON.stringify(await res.json(), null, 2));
+  } catch (err: any) {
+    setOut(
+      JSON.stringify(
+        { error: "Fetch failed", details: err.toString() },
+        null,
+        2
+      )
+    );
   }
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 font-mono">

@@ -51,37 +51,55 @@ export default function KeysPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   async function createKey() {
-    setLoading(true);
+  setLoading(true);
+  try {
+    const res = await fetch("/keys/api", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+
+    // 🔑 Safe JSON parsing
+    let data: CreateKeyResponse = {};
     try {
-      const res = await fetch("/keys/api", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      const data = (await res.json()) as CreateKeyResponse;
-
-      if (res.ok && data.key && data.id) {
-        setJustCreated({ key: data.key, id: data.id });
-      } else {
-        alert(data.error ?? "Failed to generate access token");
-      }
-    } catch (err) {
-      console.error("Error creating key:", err);
-      alert("System overload - try again");
-    } finally {
-      setLoading(false);
+      data = await res.json();
+    } catch {
+      data = {}; // fallback if response is empty
     }
-  }
 
-  async function load() {
+    if (res.ok && data.key && data.id) {
+      setJustCreated({ key: data.key, id: data.id });
+    } else {
+      alert(data.error ?? "Failed to generate access token");
+    }
+  } catch (err) {
+    console.error("Error creating key:", err);
+    alert("System overload - try again");
+  } finally {
+    setLoading(false);
+  }
+}
+
+
+    async function load() {
     try {
       const res = await fetch("/keys/api", { cache: "no-store" });
-      const data = (await res.json()) as KeyItem[];
-      setItems(data ?? []);
+      const data = await res.json();
+
+      // Defensive: ensure it's always an array
+      if (Array.isArray(data)) {
+        setItems(data);
+      } else if (Array.isArray(data.received)) {
+        setItems(data.received);
+      } else {
+        setItems([]);
+      }
     } catch (err) {
       console.error("Error loading keys:", err);
+      setItems([]);
     }
   }
+
 
   async function revokeKey(id: string) {
     try {
