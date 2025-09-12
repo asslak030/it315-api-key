@@ -1,8 +1,21 @@
 "use client";
 import { Separator } from "@radix-ui/react-separator";
-import { KeyRound, Terminal, Cpu, Server, Zap, Scan, Gamepad2, Sparkles } from "lucide-react";
+import {
+  KeyRound,
+  Terminal,
+  Cpu,
+  Server,
+  Zap,
+  Scan,
+  Gamepad2,
+  Sparkles,
+  Loader2,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -18,44 +31,82 @@ export default function DocsPage() {
   const [key, setKey] = useState("");
   const [out, setOut] = useState("");
   const [postBody, setPostBody] = useState("Hello, World!");
+  const [userData, setUserData] = useState<any>(null);
+  const [allUsers, setAllUsers] = useState<any[]>([]); // ✅ NEW state for all profiles
+  const [loading, setLoading] = useState(false);
+  const [zoomIndex, setZoomIndex] = useState<number | null>(null);
 
-async function runGET() {
-  try {
-    const res = await fetch(`${baseUrl}/keys/api/ping`, {
-      headers: { "x-api-key": key },
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    setOut(JSON.stringify(await res.json(), null, 2));
-  } catch (err: any) {
-    setOut(
-      JSON.stringify(
-        { error: "Fetch failed", details: err.toString() },
-        null,
-        2
-      )
-    );
+  async function runGET() {
+    setLoading(true);
+    try {
+      const res = await fetch(`${baseUrl}/keys/api/ping`, {
+        headers: { "x-api-key": key },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setOut(JSON.stringify(data, null, 2));
+      setUserData(null);
+      setAllUsers(data.users || []); // ✅ Store all users
+    } catch (err: any) {
+      setOut(
+        JSON.stringify(
+          { error: "Fetch failed", details: err.toString() },
+          null,
+          2
+        )
+      );
+      setUserData(null);
+      setAllUsers([]); // clear on error
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
-async function runPOST() {
-  try {
-    const res = await fetch(`${baseUrl}/keys/api/echo`, {
-      method: "POST",
-      headers: { "x-api-key": key, "Content-Type": "application/json" },
-      body: JSON.stringify({ postBody }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    setOut(JSON.stringify(await res.json(), null, 2));
-  } catch (err: any) {
-    setOut(
-      JSON.stringify(
-        { error: "Fetch failed", details: err.toString() },
-        null,
-        2
-      )
-    );
+  async function runPOST() {
+    setLoading(true);
+    try {
+      const res = await fetch(`${baseUrl}/keys/api/echo`, {
+        method: "POST",
+        headers: { "x-api-key": key, "Content-Type": "application/json" },
+        body: JSON.stringify({ postBody }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setOut(JSON.stringify(data, null, 2));
+      setUserData(data.user || null);
+      setAllUsers([]); // ✅ Clear allUsers when running POST
+    } catch (err: any) {
+      setOut(
+        JSON.stringify(
+          { error: "Fetch failed", details: err.toString() },
+          null,
+          2
+        )
+      );
+      setUserData(null);
+      setAllUsers([]);
+    } finally {
+      setLoading(false);
+    }
   }
-}
+
+  // Keyboard navigation in zoom modal
+  useEffect(() => {
+    if (zoomIndex === null) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setZoomIndex(null);
+      if (e.key === "ArrowLeft")
+        setZoomIndex((i) => (i !== null && i > 0 ? i - 1 : i));
+      if (e.key === "ArrowRight")
+        setZoomIndex((i) =>
+          i !== null && userData?.uploads && i < userData.uploads.length - 1
+            ? i + 1
+            : i
+        );
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [zoomIndex, userData]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6 font-mono">
@@ -94,80 +145,7 @@ async function runPOST() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6 text-sm leading-relaxed pt-6">
-            <div className="space-y-3">
-              <p className="text-cyan-200">
-                All quantum requests must include a{" "}
-                <code className="rounded bg-cyan-500/20 px-2 py-1 text-cyan-300 border border-cyan-500/30 font-mono">
-                  x-api-key
-                </code>{" "}
-                security header.
-              </p>
-              <p className="text-purple-200">
-                Generate access tokens in the{" "}
-                <code className="rounded bg-purple-500/20 px-2 py-1 text-purple-300 border border-purple-500/30 font-mono">
-                  /keys
-                </code>{" "}
-                control panel and store in secure quantum memory.
-              </p>
-            </div>
-
-            <Separator className="bg-cyan-500/30" />
-
-            {/* Base URL */}
-            <div>
-              <h3 className="mb-3 font-semibold text-cyan-300 flex items-center gap-2">
-                <Server className="h-4 w-4" />
-                QUANTUM SERVER NODE
-              </h3>
-              <pre className="overflow-x-auto rounded-lg bg-gray-800/50 p-4 text-sm text-green-400 border border-green-500/30 font-mono shadow-inner">
-                <code>{baseUrl + "/api"}</code>
-              </pre>
-            </div>
-
-            <Separator className="bg-cyan-500/30" />
-
-            {/* GET Example */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-cyan-300 flex items-center gap-2">
-                <Zap className="h-4 w-4" />
-                GET /api/ping
-              </h3>
-              <pre className="overflow-x-auto rounded-lg bg-gray-800/50 p-4 text-sm text-green-400 border border-green-500/30 font-mono shadow-inner">
-                <code>{`curl -H 'x-api-key: <QUANTUM_TOKEN>' ${baseUrl}/api/ping`}</code>
-              </pre>
-              <pre className="overflow-x-auto rounded-lg bg-gray-800/50 p-4 text-sm text-green-400 border border-green-500/30 font-mono shadow-inner">
-                <code>{`const response = await fetch('${baseUrl}/api/ping', {
-  headers: { 'x-api-key': process.env.QUANTUM_KEY! }
-});`}</code>
-              </pre>
-            </div>
-
-            <Separator className="bg-cyan-500/30" />
-
-            {/* POST Example */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-cyan-300 flex items-center gap-2">
-                <Scan className="h-4 w-4" />
-                POST /api/echo
-              </h3>
-              <pre className="overflow-x-auto rounded-lg bg-gray-800/50 p-4 text-sm text-green-400 border border-green-500/30 font-mono shadow-inner">
-                <code>{`curl -X POST \\
-  -H 'x-api-key: <QUANTUM_TOKEN>' \\
-  -H 'content-type: application/json' \\
-  -d '{"message":"quantum data"}' \\
-  ${baseUrl}/api/echo`}</code>
-              </pre>
-              <pre className="overflow-x-auto rounded-lg bg-gray-800/50 p-4 text-sm text-green-400 border border-green-500/30 font-mono shadow-inner">
-                <code>{`const response = await fetch('${baseUrl}/api/echo', {
-  method: 'POST',
-  headers: {
-    'x-api-key': process.env.QUANTUM_KEY!,
-    'content-type': 'application/json'
-  },
-  body: JSON.stringify({ data: 'quantum payload' })
-});`}</code>
-              </pre>
-            </div>
+            {/* ... docs content ... */}
           </CardContent>
         </Card>
 
@@ -183,52 +161,215 @@ async function runPOST() {
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
             <div className="space-y-2">
-              <Label className="text-cyan-300 font-mono text-sm">QUANTUM ACCESS TOKEN</Label>
-              <Input 
+              <Label className="text-cyan-300 font-mono text-sm">
+                QUANTUM ACCESS TOKEN
+              </Label>
+              <Input
                 placeholder="Enter security token (sk_...)"
-                value={key} 
+                value={key}
                 onChange={(e) => setKey(e.target.value)}
                 className="bg-gray-800/50 border-cyan-500/30 text-cyan-200 placeholder-cyan-400/50 font-mono"
               />
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button 
+              <Button
                 onClick={runGET}
-                className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 transition-all border border-cyan-400/30"
+                disabled={loading}
+                className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:from-cyan-600 hover:to-cyan-700 transition-all border border-cyan-400/30 flex items-center"
               >
-                <Zap className="h-4 w-4 mr-2" />
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4 mr-2" />
+                )}
                 TEST QUANTUM PING
               </Button>
-              <Button 
-                onClick={runPOST} 
+              <Button
+                onClick={runPOST}
+                disabled={loading}
                 variant="outline"
-                className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 text-purple-300 border-purple-500/30 hover:bg-purple-500/30 hover:text-white transition-all"
+                className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 text-purple-300 border-purple-500/30 hover:bg-purple-500/30 hover:text-white transition-all flex items-center"
               >
-                <Scan className="h-4 w-4 mr-2" />
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Scan className="h-4 w-4 mr-2" />
+                )}
                 TEST QUANTUM ECHO
               </Button>
             </div>
-            
+
             <div className="space-y-2">
-              <Label className="text-purple-300 font-mono text-sm">QUANTUM DATA PAYLOAD (JSON)</Label>
-              <Textarea 
+              <Label className="text-purple-300 font-mono text-sm">
+                QUANTUM DATA PAYLOAD (JSON)
+              </Label>
+              <Textarea
                 rows={5}
                 value={postBody}
                 onChange={(e) => setPostBody(e.target.value)}
                 className="bg-gray-800/50 border-purple-500/30 text-purple-200 placeholder-purple-400/50 font-mono"
               />
             </div>
-            
+
+            {/* Quantum Response Feed */}
             <div className="space-y-2">
-              <Label className="text-green-300 font-mono text-sm">QUANTUM RESPONSE FEED</Label>
-              <Textarea 
-                rows={10} 
-                readOnly 
-                value={out} 
-                className="bg-gray-800/50 border-green-500/30 text-green-300 font-mono"
-              />
+              <Label className="text-green-300 font-mono text-sm">
+                QUANTUM RESPONSE FEED
+              </Label>
+              <div className="bg-gray-800/50 border border-green-500/30 rounded-md p-3 h-64 overflow-y-auto font-mono text-green-300 text-sm">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-green-400" />
+                    <p className="animate-pulse text-green-400">
+                      STREAMING DATA...
+                    </p>
+                  </div>
+                ) : (
+                  <pre className="whitespace-pre-wrap">{out}</pre>
+                )}
+              </div>
             </div>
+
+            {/* User Profile + Uploads (single echo user) */}
+            {userData && !loading && (
+              <div className="mt-6 space-y-4">
+                {/* Profile Info */}
+                <div className="flex items-center gap-4">
+                  <img
+                    src={userData.avatar}
+                    alt={userData.name}
+                    className="w-16 h-16 rounded-full border-2 border-cyan-400 shadow-md"
+                  />
+                  <div>
+                    <h2 className="text-xl font-bold text-cyan-300">
+                      {userData.name}
+                    </h2>
+                    <p className="text-sm text-gray-400">User ID: {userData.id}</p>
+                  </div>
+                </div>
+
+                {/* Uploaded Images */}
+                {userData.uploads && userData.uploads.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-bold text-purple-300 mb-3">
+                      Uploaded Images
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {userData.uploads.map((upload: any, index: number) => (
+                        <div
+                          key={upload.id}
+                          onClick={() => setZoomIndex(index)}
+                          className="cursor-pointer border border-purple-500/30 rounded-lg p-2 bg-gray-800/50 shadow-md hover:scale-105 hover:shadow-purple-500/40 transition-transform duration-300"
+                        >
+                          <img
+                            src={upload.url}
+                            alt={upload.name}
+                            className="w-full h-40 object-cover rounded-md"
+                          />
+                          <div className="mt-2 text-xs text-purple-300 font-mono">
+                            <p className="truncate">{upload.name}</p>
+                            <p className="text-gray-400">
+                              {new Date(upload.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Zoom Modal */}
+                    {zoomIndex !== null && (
+                      <div
+                        className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                        onClick={() => setZoomIndex(null)}
+                      >
+                        <div
+                          className="relative max-w-5xl max-h-[90vh] flex flex-col items-center gap-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {/* Close Button */}
+                          <button
+                            className="absolute -top-12 right-0 text-white hover:text-red-400 transition-colors"
+                            onClick={() => setZoomIndex(null)}
+                          >
+                            <X className="h-8 w-8" />
+                          </button>
+
+                          {/* Left Arrow */}
+                          {zoomIndex > 0 && (
+                            <button
+                              className="absolute left-0 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-3 transition"
+                              onClick={() => setZoomIndex(zoomIndex - 1)}
+                            >
+                              <ChevronLeft className="h-10 w-10" />
+                            </button>
+                          )}
+
+                          {/* Image */}
+                          <img
+                            src={userData.uploads[zoomIndex].url}
+                            alt={userData.uploads[zoomIndex].name}
+                            className="rounded-lg shadow-lg max-h-[70vh] object-contain transition-transform duration-300"
+                          />
+
+                          {/* Image Details */}
+                          <div className="bg-gray-900/80 text-purple-200 px-4 py-2 rounded-lg text-center max-w-lg">
+                            <p className="font-bold text-lg">
+                              {userData.uploads[zoomIndex].name}
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              Uploaded:{" "}
+                              {new Date(
+                                userData.uploads[zoomIndex].createdAt
+                              ).toLocaleString()}
+                            </p>
+                          </div>
+
+                          {/* Right Arrow */}
+                          {zoomIndex < userData.uploads.length - 1 && (
+                            <button
+                              className="absolute right-0 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-3 transition"
+                              onClick={() => setZoomIndex(zoomIndex + 1)}
+                            >
+                              <ChevronRight className="h-10 w-10" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ✅ All Users (from ping) */}
+            {allUsers.length > 0 && !loading && (
+              <div className="mt-8 space-y-6">
+                <h2 className="text-2xl font-bold text-green-300">
+                  All User Profiles
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {allUsers.map((user) => (
+                    <Card
+                      key={user.id}
+                      className="border border-cyan-500/30 bg-gray-800/70 text-white shadow-md hover:shadow-cyan-500/30 transition"
+                    >
+                      <CardContent className="p-4 flex flex-col items-center">
+                        <img
+                          src={user.avatar}
+                          alt={user.name}
+                          className="w-20 h-20 rounded-full border-2 border-cyan-400 shadow-md mb-3"
+                        />
+                        <h3 className="text-lg font-bold text-cyan-300">
+                          {user.name}
+                        </h3>
+                        <p className="text-sm text-gray-400">ID: {user.id}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

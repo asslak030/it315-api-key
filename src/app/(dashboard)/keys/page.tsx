@@ -266,62 +266,64 @@ export default function KeysPage() {
           </CardHeader>
 
           <CardContent className="pt-4">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-cyan-500/20 hover:bg-cyan-500/5">
-                  <TableHead className="text-cyan-300 font-mono">DESIGNATION</TableHead>
-                  <TableHead className="text-cyan-300 font-mono">TOKEN ID</TableHead>
-                  <TableHead className="text-cyan-300 font-mono">CREATION TIME</TableHead>
-                  <TableHead className="text-cyan-300 font-mono">STATUS</TableHead>
-                  <TableHead className="text-cyan-300 font-mono">ACTION</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.length === 0 ? (
+            <div className="max-h-96 overflow-y-auto border border-cyan-500/20 rounded-md">
+              <Table>
+                <TableHeader className="sticky top-0 bg-gray-900 z-10">
                   <TableRow className="border-cyan-500/20 hover:bg-cyan-500/5">
-                    <TableCell colSpan={5} className="text-center text-cyan-400/50 font-mono py-8">
-                      NO ACTIVE TOKENS DETECTED
-                    </TableCell>
+                    <TableHead className="text-cyan-300 font-mono">DESIGNATION</TableHead>
+                    <TableHead className="text-cyan-300 font-mono">TOKEN ID</TableHead>
+                    <TableHead className="text-cyan-300 font-mono">CREATION TIME</TableHead>
+                    <TableHead className="text-cyan-300 font-mono">STATUS</TableHead>
+                    <TableHead className="text-cyan-300 font-mono">ACTION</TableHead>
                   </TableRow>
-                ) : (
-                  items.map((row) => (
-                    <TableRow key={row.id} className="border-cyan-500/20 hover:bg-cyan-500/5">
-                      <TableCell className="text-cyan-200">{row.name}</TableCell>
-                      <TableCell>
-                        <code className="text-cyan-400/70 font-mono">{row.masked}</code>
-                      </TableCell>
-                      <TableCell className="text-cyan-400/70 font-mono">
-                        {new Date(row.createdAt).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        {row.revoked ? (
-                          <Badge variant="outline" className="text-red-400 border-red-500/30 bg-red-500/10">
-                            REVOKED
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                            ACTIVE
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {!row.revoked && (
-                          <Button
-                            variant="outline"
-                            className="text-white border-red-500/30 bg-red-500/20 hover:bg-red-500/30 hover:text-white"
-                            onClick={async () => {
-                              await revokeKey(row.id);
-                            }}
-                          >
-                            REVOKE
-                          </Button>
-                        )}
+                </TableHeader>
+                <TableBody>
+                  {items.length === 0 ? (
+                    <TableRow className="border-cyan-500/20 hover:bg-cyan-500/5">
+                      <TableCell colSpan={5} className="text-center text-cyan-400/50 font-mono py-8">
+                        NO ACTIVE TOKENS DETECTED
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    items.map((row) => (
+                      <TableRow key={row.id} className="border-cyan-500/20 hover:bg-cyan-500/5">
+                        <TableCell className="text-cyan-200">{row.name}</TableCell>
+                        <TableCell>
+                          <code className="text-cyan-400/70 font-mono">{row.masked}</code>
+                        </TableCell>
+                        <TableCell className="text-cyan-400/70 font-mono">
+                          {new Date(row.createdAt).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {row.revoked ? (
+                            <Badge variant="outline" className="text-red-400 border-red-500/30 bg-red-500/10">
+                              REVOKED
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                              ACTIVE
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {!row.revoked && (
+                            <Button
+                              variant="outline"
+                              className="text-white border-red-500/30 bg-red-500/20 hover:bg-red-500/30 hover:text-white"
+                              onClick={async () => {
+                                await revokeKey(row.id);
+                              }}
+                            >
+                              REVOKE
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </main>
