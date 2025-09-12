@@ -1,6 +1,29 @@
 import type { NextRequest } from "next/server";
 import { verifyKey } from "~/server/db/key";
 
+// Define proper types
+interface GalleryResponse {
+  uploads?: Upload[];
+}
+
+interface Upload {
+  user: {
+    id: string;
+    name: string;
+    profileImage: string;
+  };
+  createdAt: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  avatar: string;
+  uploads: Upload[];
+  lastActive: number | null;
+  status: "offline" | "active";
+}
+
 export async function GET(req: NextRequest) {
   const apiKey = req.headers.get("x-api-key") ?? "";
   const result = await verifyKey(apiKey);
@@ -11,11 +34,11 @@ export async function GET(req: NextRequest) {
 
   // ✅ fetch gallery from your public API
   const galleryRes = await fetch("https://ipt315-project.vercel.app/api/gallery");
-  const galleryData = await galleryRes.json();
+  const galleryData = (await galleryRes.json()) as GalleryResponse;
 
   // ✅ group uploads by user
-  const usersMap = new Map<string, any>();
-  for (const upload of galleryData.uploads || []) {
+  const usersMap = new Map<string, User>();
+  for (const upload of galleryData.uploads ?? []) {
     if (!usersMap.has(upload.user.id)) {
       usersMap.set(upload.user.id, {
         id: upload.user.id,
@@ -26,7 +49,7 @@ export async function GET(req: NextRequest) {
         status: "offline", // default
       });
     }
-    const user = usersMap.get(upload.user.id);
+    const user = usersMap.get(upload.user.id)!;
     user.uploads.push(upload);
 
     // track most recent upload time
