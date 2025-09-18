@@ -51,37 +51,38 @@ export default function KeysPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   async function createKey() {
-  setLoading(true);
-  try {
-    const res = await fetch("/keys/api", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    });
-
-    // 🔑 Safe JSON parsing
-    let data: CreateKeyResponse = {};
+    setLoading(true);
     try {
-      data = await res.json();
-    } catch {
-      data = {}; // fallback if response is empty
-    }
+      const res = await fetch("/keys/api", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
 
-    if (res.ok && data.key && data.id) {
-      setJustCreated({ key: data.key, id: data.id });
-    } else {
-      alert(data.error ?? "Failed to generate access token");
+      // 🔑 Safe JSON parsing
+      let data: CreateKeyResponse = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {}; // fallback if response is empty
+      }
+
+      if (res.ok && data.key && data.id) {
+        setJustCreated({ key: data.key, id: data.id });
+        // Store the API key in localStorage
+        localStorage.setItem("apiKey", data.key);
+      } else {
+        alert(data.error ?? "Failed to generate access token");
+      }
+    } catch (err) {
+      console.error("Error creating key:", err);
+      alert("System overload - try again");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Error creating key:", err);
-    alert("System overload - try again");
-  } finally {
-    setLoading(false);
   }
-}
 
-
-    async function load() {
+  async function load() {
     try {
       const res = await fetch("/keys/api", { cache: "no-store" });
       const data = await res.json();
@@ -99,7 +100,6 @@ export default function KeysPage() {
       setItems([]);
     }
   }
-
 
   async function revokeKey(id: string) {
     try {

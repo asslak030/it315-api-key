@@ -11,4 +11,5 @@ export const apiKeys = pgTable("ipt_less4_api_keys", (d) => ({
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
   revoked: d.boolean("revoked").notNull().default(false),
+  
 }));
